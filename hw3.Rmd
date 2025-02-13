@@ -1,0 +1,264 @@
+---
+title: "HW3"
+author: "Seraphym Ignacio"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+ID: sri346\
+\
+GitHub Link:
+
+```{r echo = FALSE, include = FALSE, warning = FALSE, message = FALSE}
+# setup (just in case)
+library(tidyverse)
+library(rvest)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(stringr)
+library(knitr)
+library(lubridate)
+library(mosaic)
+```
+
+# Problem 1
+
+```{r echo=FALSE}
+# q1
+gasprices <- read.csv("gasprices.csv")
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# theory a: gas stations charge more if they lack direct competition in sight
+
+mean(Price ~ Competitors, data = gasprices)
+diffmean(Price ~ Competitors, data = gasprices)
+
+boot_comp = do(10000) * diffmean(Price ~ Competitors, data=mosaic::resample(gasprices))
+
+ggplot(boot_comp) + 
+  geom_histogram(aes(x = diffmean))
+
+confint(boot_comp, level = 0.95)
+```
+
+## Theory A:
+
+-   [Claim]{.underline}: Gas stations charge more if they lack direct competition in sight.
+
+-   [Evidence]{.underline}: Gas stations with no competitors have prices \$0.023 cents higher than gas stations with competitors. Compared to a wider population, this data was taken from 101 gas stations, so there is some uncertainty with these observations.
+
+-   [Conclusion]{.underline}: With a 95% confidence, and ruling out a difference of zero, it can be stated that gas stations with no competitors do not have significantly higher prices than ones with competitors on average, with a difference of \$0.007-\$0.06 in mean values, which does not support Theory A.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# theory b
+
+cor(Price ~ Income, data = gasprices)
+
+boot_income = do(10000) * cor(Price ~ Income, data = mosaic::resample(gasprices))
+
+ggplot(boot_income) + 
+  geom_histogram(aes(x = cor))
+```
+
+## Theory B:
+
+-   [Claim]{.underline}: The richer the area, the higher the gas prices.
+
+-   [Evidence]{.underline}: The correlation between gas prices and income is 0.40, which represents a moderately positive relationship between the two observed variables. Again, all observations are said with some uncertainty as there were only 101 out of the many gas stations in the population.
+
+-   [Conclusion]{.underline}: With 95% confidence and ruling out a difference of zero, there is a correlation of 0.57-0.20 between gas prices and area income. This positive relationship suggests that higher-income areas tend to have higher gas prices and supports Theory B.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# theory c
+
+mean(Price ~ Stoplight, data = gasprices)
+diffmean(Price ~ Stoplight, data = gasprices)
+
+boot_stoplight = do(10000) * diffmean(Price ~ Stoplight, data = mosaic::resample(gasprices))
+
+ggplot(boot_stoplight) + 
+  geom_histogram(aes(x = diffmean))
+
+confint(boot_stoplight, level = 0.95)
+```
+
+## Theory C:
+
+-   Claim: Gas stations at stoplights charge more.
+
+-   Evidence: Gas stations with no stoplights have prices of \$0.003 higher than gas stations with stoplights. This observation comes with some uncertainty due to taking a small part of the population.
+
+-   Conclusion: This data does not rule out a difference of zero, and so it can be verified that the data supports Theory A and the average price between these types of gas stations are not statistically significant.
+
+```{r echo=FALSE}
+#theory d
+```
+
+## Theory D:
+
+-   Claim: Gas stations with direct highway access charge more.
+
+-   Evidence:
+
+-   Conclusion:
+
+```{r echo=FALSE}
+# theory e
+```
+
+## Theory E:
+
+-   Claim: Shell charges more than all other non-Shell brands.
+
+-   Evidence:
+
+-   Conclusion:
+
+# Problem 2
+
+```{r echo=FALSE}
+# q2
+sclass <- read.csv("sclass.csv")
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# part a
+
+cars116 <- sclass |>
+  filter(year == "2011", trim == "63 AMG")
+
+
+boot_mile <- do(10000) * mean(~mileage, data = mosaic::resample(cars116))
+
+boot_mile |>
+  summarize(std_err_ = sd(mean))
+
+ggplot(boot_mile) + 
+  geom_histogram(aes(x= mean))
+
+confint(boot_mile, level = 0.95)
+```
+
+## Part A
+
+Based on these 116 cars from a 30,000-car dataset, it can be stated with 95% confidence that the average mileage of the 2011 S-Class 63 AMGs is 26.5 thousand. The true average mileage would be expected to fall between approximately 26 thousand and 32 thousand.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# part b
+
+cars2889 <- sclass |>
+  filter(year == "2014", trim == "550") |>
+  mutate(isBlack = color == "Black")
+
+boot_black <- do(10000) * mean(~isBlack, data = mosaic::resample(cars2889))
+
+boot_black |>
+  summarize(std_err_ = sd(mean))
+
+ggplot(boot_black) + 
+  geom_histogram(aes(x= mean))
+
+confint(boot_black, level = 0.95)
+```
+
+## Part B
+
+Based on these 2889 cars from a 30,000-car dataset, it can be stated with 95% confidence that the average amount of cars painted black of the 2014 S-Class 550s is 0.43. The true average amount would be expected to fall between approximately 0.42 and 0.45.
+
+# Problem 3
+
+```{r echo=FALSE}
+# q3
+nbc <- read.csv("nbc_pilotsurvey.csv")
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# part a
+
+edVearl <- nbc |>
+  filter(Show %in% c("Living with Ed", "My Name is Earl"))
+
+boot_edVearl <- do(10000) * mean(~Q1_Happy, data = mosaic::resample(edVearl))
+
+boot_edVearl |>
+  summarize(std_err_ = sd(mean))
+
+ggplot(boot_edVearl) + 
+  geom_histogram(aes(x= mean))
+
+confint(boot_edVearl, level=0.95)
+```
+
+## Part A
+
+1.  Question: Who makes people happier: Ed or earl?
+2.  Approach: To answer this question, I used viewer responses from the dataset for two shows called "Living with Ed" and "My Name is Earl". Then,
+3.  Results:
+4.  Conclusion:
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# part b
+
+annoyed <- nbc |>
+  filter(Show %in% c("The Biggest Loser", "The Apprentice: Los Angeles"))
+
+boot_annoyed <- do(10000) * mean(~Q1_Annoyed, data = mosaic::resample(annoyed))
+
+boot_annoyed |>
+  summarize(std_err_ = sd(mean))
+
+ggplot(boot_annoyed) + 
+  geom_histogram(aes(x= mean))
+
+confint(boot_annoyed, level=0.95)
+```
+
+## Part B
+
+1.  Question: Which reality contest made people feel more annoyed: "The Biggest Loser" or "The Apprentice: Los Angeles"
+2.  Approach: To answer this question, I used viewer responses from the dataset for two shows called "The Biggest Loser" and "The Apprentice: Los Angeles". Then,
+3.  Results:
+4.  Conclusion:
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# part c
+
+confusing <- nbc |>
+  filter(Show == "Dancing with the Stars")
+
+boot_confusing <- do(10000) * mean(~Q2_Confusing, data = mosaic::resample(confusing))
+
+boot_confusing |>
+  summarize(std_err_ = sd(mean))
+
+ggplot(boot_confusing) + 
+  geom_histogram(aes(x= mean))
+
+confint(boot_confusing, level=0.95)
+```
+
+## Part C
+
+1.  Question: Is the premise of "Dancing with the Stars" confusing?
+2.  Approach: To answer this question, I used viewer responses from the dataset for the show "Dancing with the Stars". Then,
+3.  Results:
+4.  Conclusion:
+
+# Problem 4
+
+```{r echo=FALSE}
+# q4
+
+
+```
+
+1.  Question:
+2.  Approach:
+3.  Results:
+4.  Conclusion:
